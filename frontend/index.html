@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Enterprise Payment & Notification Engine - Real-time fintech transaction dashboard and event notification stream for DevOps Capstone.">
+  <meta name="author" content="DevOps Capstone Project">
+  <title>Enterprise Payment & Notification Engine</title>
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Core Design System Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="app-header" id="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="14" x="2" y="5" rx="2"/>
+            <line x1="2" x2="22" y1="10" y2="10"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">Enterprise Payment &amp; Notification Engine</h1>
+          <div class="brand-badges">
+            <span class="badge badge-tech">v1.0.0</span>
+            <span class="badge badge-env" id="env-badge">DevOps Capstone</span>
+            <span class="badge badge-nodeport">K8s NodePort: 30099</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Connectivity & Quick Controls -->
+      <div class="header-actions">
+        <div class="health-pill" id="health-pill" title="Click to inspect backend connection">
+          <span class="status-indicator status-connecting" id="connection-dot"></span>
+          <div class="health-meta">
+            <span class="health-title" id="connection-status-text">Checking Backend...</span>
+            <span class="health-subtitle" id="connection-url-text">http://localhost:28081</span>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" id="btn-refresh" title="Refresh health and payment data">
+          <svg class="icon-refresh" id="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+            <path d="M16 21h5v-5"/>
+          </svg>
+          <span>Refresh</span>
+        </button>
+
+        <button class="btn btn-primary" id="btn-new-payment">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>Simulate Payment</span>
+        </button>
+
+        <button class="btn btn-icon" id="btn-settings" title="API and Port Configuration">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Error Notification Banner (Shown when disconnected) -->
+  <aside class="alert-banner hidden" id="alert-banner">
+    <div class="alert-content">
+      <div class="alert-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div class="alert-message">
+        <strong>Backend Disconnected:</strong>
+        <span id="alert-details">Cannot connect to the backend API at <code id="alert-url">http://localhost:28081</code>.</span>
+        <span class="alert-hint">Make sure the backend is running via <code>python backend/run.py</code>.</span>
+      </div>
+      <div class="alert-actions">
+        <button class="btn btn-sm btn-outline" id="btn-banner-retry">Retry Connection</button>
+        <button class="btn btn-sm btn-ghost" id="btn-banner-config">Config URL</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Dashboard Container -->
+  <main class="main-content" id="main-content">
+    <!-- KPI Metric Cards Grid -->
+    <section class="metrics-grid" aria-label="Key Performance Metrics">
+      <!-- Card 1: Engine Status -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">System Health</span>
+          <span class="metric-tag" id="kpi-status-tag">Checking</span>
+        </div>
+        <div class="metric-value-row">
+          <span class="metric-value" id="kpi-health-status">--</span>
+        </div>
+        <div class="metric-footer">
+          <span class="metric-sub" id="kpi-uptime">Uptime: --</span>
+          <span class="metric-sub" id="kpi-env">Env: Development</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Total Volume -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Processed Volume</span>
+          <span class="metric-tag tag-cyan">Mock Ledger</span>
+        </div>
+        <div class="metric-value-row">
+          <span class="metric-value font-mono" id="kpi-total-volume">$0.00</span>
+        </div>
+        <div class="metric-footer">
+          <span class="metric-sub" id="kpi-transactions-count">0 Transactions</span>
+          <span class="metric-sub text-success" id="kpi-success-rate">100% Rate</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Notifications Dispatched -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Notifications Dispatched</span>
+          <span class="metric-tag tag-purple">Real-time</span>
+        </div>
+        <div class="metric-value-row">
+          <span class="metric-value font-mono" id="kpi-notifs-count">0</span>
+        </div>
+        <div class="metric-footer">
+          <span class="metric-sub" id="kpi-notifs-delivered">0 Delivered</span>
+          <span class="metric-sub" id="kpi-notifs-queued">0 Queued</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Network Configuration -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Port Allocation</span>
+          <span class="metric-tag tag-amber">Verified Free</span>
+        </div>
+        <div class="metric-value-row">
+          <span class="metric-value font-mono font-sm">F:28080 | B:28081</span>
+        </div>
+        <div class="metric-footer">
+          <span class="metric-sub">K8s NodePort: 30099</span>
+          <span class="metric-sub text-muted" id="kpi-latency">Latency: --</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Two-Column Workbench Section -->
+    <div class="workbench-layout">
+      <!-- Left Column: Payment Transactions Table -->
+      <section class="workbench-panel panel-payments" aria-label="Payment Transactions Ledger">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2 class="panel-title">Payment Transactions</h2>
+            <span class="count-badge" id="payments-badge">0 Records</span>
+          </div>
+
+          <!-- Filters & Search -->
+          <div class="panel-controls">
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="payments-search-input" placeholder="Search ID, customer, remarks..." aria-label="Search payment records">
+            </div>
+
+            <div class="filter-tabs" id="status-filters">
+              <button class="filter-tab active" data-status="ALL">All</button>
+              <button class="filter-tab" data-status="COMPLETED">Completed</button>
+              <button class="filter-tab" data-status="PENDING">Pending</button>
+              <button class="filter-tab" data-status="PROCESSING">Processing</button>
+              <button class="filter-tab" data-status="FAILED">Failed</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-container">
+          <table class="data-table" id="payments-table">
+            <thead>
+              <tr>
+                <th scope="col">Transaction ID</th>
+                <th scope="col">Customer / Counterparty</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Method</th>
+                <th scope="col">Status</th>
+                <th scope="col">Timestamp</th>
+                <th scope="col" class="th-actions">Action</th>
+              </tr>
+            </thead>
+            <tbody id="payments-tbody">
+              <!-- Rendered via JavaScript -->
+            </tbody>
+          </table>
+
+          <!-- Empty State -->
+          <div class="state-container hidden" id="payments-empty-state">
+            <div class="state-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+              </svg>
+            </div>
+            <h3 class="state-title">No Payment Records Found</h3>
+            <p class="state-desc" id="payments-empty-desc">No transaction records match the specified search or filter criteria.</p>
+            <button class="btn btn-secondary btn-sm" id="btn-reset-filters">Reset Filters</button>
+          </div>
+
+          <!-- Loading State -->
+          <div class="state-container hidden" id="payments-loading-state">
+            <div class="spinner"></div>
+            <p class="state-desc">Fetching payment records from backend...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Notification Events Stream -->
+      <section class="workbench-panel panel-notifications" aria-label="Notification Dispatch Stream">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2 class="panel-title">Notification Stream</h2>
+            <span class="count-badge count-badge-purple" id="notifs-badge">0 Events</span>
+          </div>
+          <span class="feed-pulse-indicator" title="Live audit stream">
+            <span class="pulse-ring"></span>
+            <span class="pulse-dot"></span>
+            Audit Active
+          </span>
+        </div>
+
+        <div class="notifications-stream" id="notifications-stream">
+          <!-- Rendered via JavaScript -->
+        </div>
+
+        <!-- Empty Notifications State -->
+        <div class="state-container hidden" id="notifs-empty-state">
+          <div class="state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </div>
+          <h3 class="state-title">No Notification Events</h3>
+          <p class="state-desc">Waiting for payment lifecycle events to trigger dispatch notifications.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal 1: Simulate Payment -->
+  <div class="modal-backdrop hidden" id="modal-payment" role="dialog" aria-modal="true" aria-labelledby="modal-payment-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-payment-title">Simulate Payment Transaction</h3>
+        <button class="btn-close" id="btn-close-payment-modal" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="form-simulate-payment">
+        <div class="modal-body">
+          <p class="modal-desc">Generate a synthetic mock payment record. This will trigger automated validation and dispatch a corresponding notification event.</p>
+          
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label for="input-amount">Amount *</label>
+              <div class="input-prefix-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" id="input-amount" step="0.01" min="0.01" max="10000000" placeholder="12500.00" required>
+              </div>
+            </div>
+            <div class="form-group flex-1">
+              <label for="input-currency">Currency *</label>
+              <select id="input-currency" required>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="input-customer">Customer / Entity Name *</label>
+            <input type="text" id="input-customer" placeholder="e.g. Apex Global Logistics" minlength="2" maxlength="100" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="input-method">Payment Method *</label>
+              <select id="input-method" required>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Fedwire">Fedwire</option>
+                <option value="ACH Direct Debit">ACH Direct Debit</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="SEPA Instant">SEPA Instant</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="input-status">Initial Status *</label>
+              <select id="input-status" required>
+                <option value="COMPLETED">COMPLETED</option>
+                <option value="PENDING">PENDING</option>
+                <option value="PROCESSING">PROCESSING</option>
+                <option value="FAILED">FAILED</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="input-description">Remarks / Description</label>
+            <input type="text" id="input-description" placeholder="e.g. Q4 Settlement Clearing" maxlength="200">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-payment">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-payment">
+            <span>Submit Payment</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Transaction Details Viewer -->
+  <div class="modal-backdrop hidden" id="modal-details" role="dialog" aria-modal="true" aria-labelledby="modal-details-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-details-title">Transaction Details</h3>
+        <button class="btn-close" id="btn-close-details-modal" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="details-grid" id="details-grid">
+          <!-- Rendered dynamically -->
+        </div>
+        <div class="json-viewer-section">
+          <span class="json-label">Raw API Payload</span>
+          <pre class="json-pre" id="details-json"></pre>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-close-details-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: API & Port Configuration Settings -->
+  <div class="modal-backdrop hidden" id="modal-settings" role="dialog" aria-modal="true" aria-labelledby="modal-settings-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-settings-title">API &amp; Port Settings</h3>
+        <button class="btn-close" id="btn-close-settings-modal" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          Configure the Backend API endpoint dynamically. Useful when switching between local dev (port 28081), Docker containers, or Kubernetes services.
+        </p>
+
+        <div class="form-group">
+          <label for="input-api-url">Backend API URL *</label>
+          <input type="url" id="input-api-url" placeholder="http://localhost:28081" required>
+          <span class="field-hint">Default local development port: <strong>28081</strong>. In Kubernetes, this can point to the NodePort or Ingress.</span>
+        </div>
+
+        <div class="settings-diagnostics-box">
+          <h4>Port Allocation Summary</h4>
+          <ul class="settings-port-list">
+            <li><strong>Frontend Local Port:</strong> <code>28080</code> (Verified free)</li>
+            <li><strong>Backend Local Port:</strong> <code>28081</code> (Verified free)</li>
+            <li><strong>Kubernetes NodePort:</strong> <code>30099</code> (Frontend practical requirement)</li>
+          </ul>
+        </div>
+
+        <div class="test-connection-box">
+          <button type="button" class="btn btn-outline btn-sm" id="btn-test-connection">Test Backend Connection</button>
+          <span class="test-result-text" id="test-connection-result"></span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="btn-reset-api-url">Reset to Default</button>
+        <button type="button" class="btn btn-secondary" id="btn-cancel-settings">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-save-settings">Save &amp; Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- Application Scripts -->
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

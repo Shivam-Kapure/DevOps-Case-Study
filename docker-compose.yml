@@ -1,0 +1,46 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: payment-engine-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-28081}:28081"
+    environment:
+      - PORT=28081
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=28081
+      - APP_ENV=production
+      - CORS_ORIGINS=http://localhost:${FRONTEND_PORT:-28080},http://127.0.0.1:${FRONTEND_PORT:-28080},http://localhost:30099,*
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:28081/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - payment-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: payment-engine-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-28080}:28080"
+    environment:
+      # Browser client accesses backend via host-mapped port
+      - BACKEND_API_URL=http://localhost:${BACKEND_PORT:-28081}
+      - FRONTEND_PORT=28080
+      - APP_ENV=production
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - payment-network
+
+networks:
+  payment-network:
+    driver: bridge
