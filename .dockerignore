@@ -12,5 +12,7 @@ __pycache__
 htmlcov
 *.log
 README.md
+.env
+.env.*
 .env.local
 .DS_Store
